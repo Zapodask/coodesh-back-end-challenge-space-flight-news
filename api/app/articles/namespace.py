@@ -23,7 +23,7 @@ model = articles.model(
 @articles.route("/")
 class Index(Resource):
     @articles.doc("list articles")
-    # @articles.marshal_list_with(model)
+    @articles.marshal_list_with(model)
     def get(self):
         return {"message": "Ok"}, 200
 
