@@ -1,6 +1,6 @@
 FROM python:3.10
 
-WORKDIR /api
+WORKDIR /src
 COPY . .
 
 RUN pip install -r requirements.txt
