@@ -1,12 +1,31 @@
 from flask_restx import Namespace, Resource, fields
+from flask import request
+
+from db import articles as db
 
 
 articles = Namespace("articles", description="Articles operations")
 
+launches_model = articles.model(
+    "Launches",
+    {
+        "id": fields.String,
+        "provider": fields.String,
+    },
+)
+
+events_model = articles.model(
+    "Events",
+    {
+        "id": fields.String,
+        "provider": fields.String,
+    },
+)
+
 model = articles.model(
     "Article",
     {
-        "id": fields.Integer,
+        "id": fields.String,
         "featured": fields.Boolean,
         "title": fields.String,
         "url": fields.String,
@@ -14,8 +33,8 @@ model = articles.model(
         "newsSite": fields.String,
         "summary": fields.String,
         "publishedAt": fields.String,
-        "launches": [{"id": fields.String, "provider": fields.String}],
-        "events": [{"id": fields.String, "provider": fields.String}],
+        "launches": fields.List(fields.Nested(launches_model)),
+        "events": fields.List(fields.Nested(events_model)),
     },
 )
 
@@ -25,11 +44,41 @@ class Index(Resource):
     @articles.doc("list articles")
     @articles.marshal_list_with(model)
     def get(self):
-        return {"message": "Ok"}, 200
+        headers = request.headers
+
+        limit = headers.get("limit")
+        if limit == None:
+            limit = 10
+        else:
+            limit = int(limit)
+
+        page = headers.get("page")
+        if page == None:
+            page = 1
+        else:
+            page = int(page)
+
+        res = db.find().limit(limit).skip((page - 1) * limit).sort("_id", -1)
+
+        items = []
+        for item in res:
+            del item["_id"]
+            items.append(item)
+
+        return items, 200
 
     @articles.doc("create article")
     def post(self):
-        return {"message": "Ok"}, 200
+        req = request.get_json()
+
+        last = db.find().limit(1).sort("_id", -1)
+        last_id = last[0]["id"]
+
+        req["id"] = str(int(last_id) + 1)
+
+        db.insert_one(req)
+
+        return {"message": "Article created"}, 200
 
 
 @articles.route("/<int:id>")
@@ -39,14 +88,35 @@ class Id(Resource):
     @articles.doc("Show article")
     @articles.marshal_with(model)
     def get(self, id):
-        return {"message": f"Ok {id}"}, 200
+        article = db.find_one({"id": str(id)})
+
+        if article != None:
+            del article["_id"]
+
+            return article, 200
+        else:
+            return {"message": f"Article {id} not found"}, 404
 
     @articles.doc("Update article")
-    @articles.marshal_with(model)
     def put(self, id):
-        return {"message": f"Ok {id}"}, 200
+        req = request.get_json()
+
+        article = db.find_one({"id": str(id)})
+
+        if article != None:
+            db.update_one({"id": str(id)}, {"$set": req})
+
+            return {"message": f"Article {id} updated"}, 200
+        else:
+            return {"message": f"Article {id} not found"}, 404
 
     @articles.doc("Delete article")
-    @articles.marshal_with(model)
     def delete(self, id):
-        return {"message": f"Ok {id}"}, 200
+        article = db.find_one({"id": str(id)})
+
+        if article != None:
+            db.delete_one({"id": str(id)})
+
+            return {"message": f"Article {id} deleted"}, 200
+        else:
+            return {"message": f"Article {id} not found"}, 404

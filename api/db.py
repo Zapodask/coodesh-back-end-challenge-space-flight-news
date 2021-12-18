@@ -1,11 +1,14 @@
 from pymongo import MongoClient
+from dotenv import load_dotenv
+from os import getenv
+
 import requests
 import json
 
 
-client = MongoClient(
-    "mongodb+srv://zapodask:zapodask@cluster0.kngaq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-)
+load_dotenv()
+
+client = MongoClient(getenv("CLUSTER"))
 
 db = client["spacedb"]
 
@@ -16,6 +19,7 @@ def updateDB():
     to_add = []
     n = 0
     loop = True
+    last_id = int((articles.find().limit(1).sort("_id", -1))[0]["id"])
 
     while loop:
         res = requests.get(
@@ -27,6 +31,8 @@ def updateDB():
             article = articles.find_one({"title": item.get("title")})
 
             if article == None:
+                last_id += 1
+                item["id"] = str(last_id)
                 to_add.append(item)
                 print(f'Appending: {item.get("title")}')
             else:
@@ -35,7 +41,7 @@ def updateDB():
                 if tal != 0:
                     print(f"{tal} articles to add")
 
-                    articles.insert_many(to_add)
+                    articles.insert_many(to_add[::-1])
                 else:
                     print("No articles to add")
 
