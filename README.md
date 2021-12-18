@@ -40,7 +40,7 @@ docker-compose up --build
 
 ## Apresentação
 
-https://drive.google.com/file/d/14gIAe6Z0B4BkPPHHo-V7fbDPoz_ARk3c/view?usp=sharing
+https://www.loom.com/share/8392cdb5106d45e29a954bdc7948fb74
 
 <br>
 

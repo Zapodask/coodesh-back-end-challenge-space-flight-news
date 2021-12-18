@@ -16,6 +16,8 @@ articles = db["articles"]
 
 
 def updateDB():
+    print("Updating DB")
+
     to_add = []
     n = 0
     loop = True
