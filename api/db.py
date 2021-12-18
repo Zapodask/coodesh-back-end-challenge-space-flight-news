@@ -42,6 +42,8 @@ def updateDB():
                     print(f"{tal} articles to add")
 
                     articles.insert_many(to_add[::-1])
+
+                    print("Articles added")
                 else:
                     print("No articles to add")
 

@@ -88,35 +88,35 @@ class Id(Resource):
     @articles.doc("Show article")
     @articles.marshal_with(model)
     def get(self, id):
-        article = db.find_one({"id": str(id)})
+        article = db.find_one({"id": id})
 
         if article != None:
             del article["_id"]
 
             return article, 200
         else:
-            return {"message": f"Article {id} not found"}, 404
+            return articles.abort(400, f"Article {id} not found")
 
     @articles.doc("Update article")
     def put(self, id):
         req = request.get_json()
 
-        article = db.find_one({"id": str(id)})
+        article = db.find_one({"id": id})
 
         if article != None:
-            db.update_one({"id": str(id)}, {"$set": req})
+            db.update_one({"id": id}, {"$set": req})
 
             return {"message": f"Article {id} updated"}, 200
         else:
-            return {"message": f"Article {id} not found"}, 404
+            return {"message": f"Article {id} not found"}, 400
 
     @articles.doc("Delete article")
     def delete(self, id):
-        article = db.find_one({"id": str(id)})
+        article = db.find_one({"id": id})
 
         if article != None:
-            db.delete_one({"id": str(id)})
+            db.delete_one({"id": id})
 
             return {"message": f"Article {id} deleted"}, 200
         else:
-            return {"message": f"Article {id} not found"}, 404
+            return {"message": f"Article {id} not found"}, 400
