@@ -74,7 +74,7 @@ class Index(Resource):
         last = db.find().limit(1).sort("_id", -1)
         last_id = last[0]["id"]
 
-        req["id"] = str(int(last_id) + 1)
+        req["id"] = int(last_id) + 1
 
         db.insert_one(req)
 
